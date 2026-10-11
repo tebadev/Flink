@@ -5,14 +5,14 @@ class Almacen:
     def __init__(self, ruta_json, registro):
         self.ruta_json = ruta_json
         self.registro = registro
-        self.diccionario = {}
+        self.diccionario = {"bookmarks": []}
         self.ids = []
-
+        self._verificar_archivo()
 
     def _verificar_archivo(self):
         if not os.path.exists(self.ruta_json):
             self._guardar_diccionario()
-            return self.registro.registrar(f"Advertencia: el archivo '{self.json}' no existe. Se ha generado uno nuevo.")
+            return self.registro.registrar(f"Advertencia: el archivo '{self.ruta_json}' no existe. Se ha generado uno nuevo.")
 
         try:
             with open(self.ruta_json, "r", encoding="utf-8") as archivo:
@@ -22,7 +22,7 @@ class Almacen:
                     raise ValueError
         except (json.JSONDecodeError, ValueError):
             self._guardar_diccionario()
-            return self.registro.registrar(f"Advertencia: El archivo '{self.json}' esta corructo y se ha generado nuevamente.")
+            return self.registro.registrar(f"Advertencia: El archivo '{self.ruta_json}' esta corructo y se ha generado nuevamente.")
 
 
     def _cargar_diccionario(self):
