@@ -27,7 +27,7 @@ class manager:
         if not nombre:
             nombre = self._generar_nombres(enlace)
 
-        self.diccionario["bookmarks"].append(
+        self.almacen.diccionario["bookmarks"].append(
             {
                 "id": self._generar_id(),
                 "nombre": nombre,
@@ -38,7 +38,7 @@ class manager:
         )
 
         self.almacen._guardar_diccionario()
-        return self.registro.registro(f"Se ha agregado '{self.diccionario['bookmarks'][-1]}' a la lista.")
+        return self.registro.registrar(f"Se ha agregado '{self.almacen.diccionario['bookmarks'][-1]}' a la lista.")
 
 
     def eliminar_marcador(self, id):
