@@ -1,65 +1,63 @@
-from datetime import datetime
 import validators
+from datetime import datetime
 from tabulate import tabulate
 
-class Flink:
-    def __init__(self, storage, logger):
-        self.storage = storage
-        self.logger = logger
+class manager:
+    def __init__(self, almacen, registro):
+        self.almacen = almacen
+        self.registro = registro
 
-    def _generar_id(self, bookmarks):
-        if not bookmarks:
+
+    def _generar_id(self):
+        if not self.almacen.ids:
             return 1
-        return max(b["id"] for b in bookmarks) + 1
+        return max(self.almacen.ids) + 1
+
 
     def _generar_nombres(self, enlace):
         return enlace
 
+
     def agregar_marcador(self, enlace, nombre=None, etiquetas=None):
+        self.almacen._cargar_diccionario()
+
         if not validators.url(enlace):
-            self.logger.registrar(f"Error: '{enlace}' no es una URL.")
-            return "❌ Error: La URL ingresada no es válida."
+            return self.registro.registrar(f"Error: '{enlace}' no es una URL.")
 
         if not nombre:
             nombre = self._generar_nombres(enlace)
-            self.logger.registrar(f"Aviso: No se indicó nombre, se usó el enlace para '{enlace}'.")
 
-        datos = self.storage.cargar()
-        nuevo_id = self._generar_id(datos["bookmarks"])
+        self.diccionario["bookmarks"].append(
+            {
+                "id": self._generar_id(),
+                "nombre": nombre,
+                "enlace": enlace,
+                "etiquetas": etiquetas,
+                "fecha": datetime.now().strftime("%Y-%m-%dT%H:%M")
+            }
+        )
 
-        nuevo_marcador = {
-            "id": nuevo_id,
-            "nombre": nombre,
-            "enlace": enlace,
-            "etiquetas": etiquetas,
-            "fecha": datetime.now().strftime("%Y-%m-%dT%H:%M")
-        }
+        self.almacen._guardar_diccionario()
+        return self.registro.registro(f"Se ha agregado '{self.diccionario['bookmarks'][-1]}' a la lista.")
 
-        datos["bookmarks"].append(nuevo_marcador)
-        self.storage.guardar(datos)
 
-        self.logger.registrar(f"Se ha agregado el marcador ID {nuevo_id} a la lista.")
-        return f"✨ Marcador '{nombre}' agregado con éxito."
+    def eliminar_marcador(self, id):
+        self.almacen._cargar_diccionario()
 
-    def eliminar_marcador(self, id_marcador):
-        datos = self.storage.cargar()
-        bookmarks = datos["bookmarks"]
+        if id in self.almacen.ids:
+            marcador_borrado = self.almacen.diccionario["bookmarks"].pop(self.ids.index(id))
+            self.almacenn._guardar_diccionario()
+            return self.registro.registrar(f"Se ha borrado el elemento '{marcador_borrado}'")
 
-        # Buscar el índice del marcador por su ID
-        indice = next((i for i, b in enumerate(bookmarks) if b["id"] == id_marcador), None)
+        return self.registro.registrar(f"Advertencia: No se pudo borrar el iD '{id}' por que no existe.")
 
-        if indice is not None:
-            borrado = bookmarks.pop(indice)
-            self.storage.guardar(datos)
-            self.logger.registrar(f"Se ha borrado el elemento ID '{id_marcador}'")
-            return f"🗑️ Se ha borrado el marcador '{borrado['nombre']}'."
-
-        self.logger.registrar(f"Advertencia: No se pudo borrar el ID '{id_marcador}' porque no existe.")
-        return f"⚠️ Advertencia: No existe un marcador con el ID '{id_marcador}'."
 
     def mostrar_marcadores(self):
-        datos = self.storage.cargar()
-        if not datos["bookmarks"]:
-            return "No hay marcadores guardados."
+        self.almacen._cargar_diccionario()
 
-        return tabulate(datos["bookmarks"], tablefmt="grid")
+        tabla = tabulate(
+            self.almacen.diccionario["bookmarks"],
+            tablefmt="grid"
+        )
+
+        return tabla
